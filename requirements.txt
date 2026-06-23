@@ -1,0 +1,10 @@
+PyQt6
+keyboard
+mss
+sounddevice
+soundfile
+google-generativeai
+anthropic
+pyinstaller
+Pillow
+pynput

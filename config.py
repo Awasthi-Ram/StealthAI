@@ -4,6 +4,7 @@ import os
 CONFIG_FILE = "settings.json"
 
 DEFAULT_CONFIG = {
+    "backend_mode": "API",
     "gemini_api_key": "",
     "claude_api_key": "",
     "selected_model": "Gemini 3.5 Flash",  # Options: Gemini 3.5 Flash, Gemini 3.5 Pro, Claude Sonnet 4.6

@@ -51,6 +51,9 @@ class StealthAIApp:
         self.signals.trigger_capture_add.connect(self.on_capture_add)
         self.signals.trigger_process_buffer.connect(self.on_process_buffer)
         
+        # Connect overlay quit button
+        self.overlay.quit_btn.clicked.connect(self.quit_app)
+        
         self.setup_tray()
         self.register_hotkeys()
         
@@ -154,6 +157,7 @@ class StealthAIApp:
         self.app.quit()
 
     def run(self):
+        self.overlay.show_message("StealthAI Running\nListening for hotkeys...\n(This overlay is invisible to screen capture)")
         sys.exit(self.app.exec())
 
 if __name__ == "__main__":

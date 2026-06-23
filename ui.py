@@ -37,17 +37,50 @@ class OverlayUI(QMainWindow):
         self.text_display.setReadOnly(True)
         self.text_display.setStyleSheet("""
             QTextEdit {
-                background-color: rgba(0, 0, 0, 180);
-                color: #00FF00;
-                font-family: Consolas;
-                font-size: 16px;
-                border: 2px solid #555555;
-                border-radius: 10px;
-                padding: 10px;
+                background-color: rgba(25, 25, 30, 230);
+                color: #F8F8F2;
+                font-family: 'Segoe UI', Consolas, sans-serif;
+                font-size: 18px;
+                line-height: 1.5;
+                border: 2px solid #44475A;
+                border-radius: 12px;
+                padding: 15px;
+            }
+            QScrollBar:vertical {
+                border: none;
+                background: rgba(0,0,0,0);
+                width: 10px;
+                margin: 0px 0px 0px 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #6272A4;
+                min-height: 20px;
+                border-radius: 5px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                border: none;
+                background: none;
             }
         """)
         
         layout.addWidget(self.text_display)
+        
+        self.quit_btn = QPushButton("Quit", self)
+        self.quit_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(255, 85, 85, 200);
+                color: white;
+                border-radius: 5px;
+                padding: 5px 15px;
+                font-family: 'Segoe UI', sans-serif;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 85, 85, 255);
+            }
+        """)
+        layout.addWidget(self.quit_btn, alignment=Qt.AlignmentFlag.AlignRight)
         
     def show_message(self, text):
         self.text_display.setPlainText(text)
@@ -78,6 +111,11 @@ class SettingsDialog(QDialog):
         self.setFixedSize(450, 720)
         
         layout = QFormLayout(self)
+        
+        self.backend_combo = QComboBox()
+        self.backend_combo.addItems(["API", "Web"])
+        self.backend_combo.setCurrentText(self.config.get("backend_mode", "API"))
+        layout.addRow("Integration Mode:", self.backend_combo)
         
         self.gemini_key = QLineEdit(self.config.get("gemini_api_key", ""))
         self.claude_key = QLineEdit(self.config.get("claude_api_key", ""))
@@ -120,6 +158,14 @@ class SettingsDialog(QDialog):
         layout.addRow("Hotkey (Capture+Add):", self.hk_capture_add)
         layout.addRow("Hotkey (Process Multiple):", self.hk_process_buffer)
         
+        self.login_btn = QPushButton("Open Gemini Web Login")
+        self.login_btn.clicked.connect(self.login_gemini)
+        layout.addRow("Web Login:", self.login_btn)
+        
+        # Connect toggle
+        self.backend_combo.currentTextChanged.connect(self.toggle_backend_ui)
+        self.toggle_backend_ui(self.backend_combo.currentText())
+        
         btn_layout = QHBoxLayout()
         save_btn = QPushButton("Save")
         save_btn.clicked.connect(self.save_settings)
@@ -131,7 +177,27 @@ class SettingsDialog(QDialog):
         
         layout.addRow(btn_layout)
         
+    def toggle_backend_ui(self, mode):
+        is_api = (mode == "API")
+        layout = self.layout()
+        
+        self.gemini_key.setVisible(is_api)
+        layout.labelForField(self.gemini_key).setVisible(is_api)
+        self.claude_key.setVisible(is_api)
+        layout.labelForField(self.claude_key).setVisible(is_api)
+        self.model_combo.setVisible(is_api)
+        layout.labelForField(self.model_combo).setVisible(is_api)
+        
+        self.login_btn.setVisible(not is_api)
+        layout.labelForField(self.login_btn).setVisible(not is_api)
+
+    def login_gemini(self):
+        import threading
+        from ai_client import login_gemini_web
+        threading.Thread(target=login_gemini_web, daemon=True).start()
+        
     def save_settings(self):
+        self.config["backend_mode"] = self.backend_combo.currentText()
         self.config["gemini_api_key"] = self.gemini_key.text()
         self.config["claude_api_key"] = self.claude_key.text()
         self.config["selected_model"] = self.model_combo.currentText()

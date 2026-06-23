@@ -6,12 +6,20 @@ CONFIG_FILE = "settings.json"
 DEFAULT_CONFIG = {
     "gemini_api_key": "",
     "claude_api_key": "",
-    "selected_model": "Gemini 1.5 Flash",  # Options: Gemini 1.5 Flash, Gemini 1.5 Pro, Claude 3.5 Sonnet
+    "selected_model": "Gemini 3.5 Flash",  # Options: Gemini 3.5 Flash, Gemini 3.5 Pro, Claude Sonnet 4.6
     "system_prompt": "You are an expert coding assistant. Solve the coding problem provided in the image/audio. Be extremely concise.",
     "hotkey_image": "ctrl+shift+1",
     "hotkey_audio": "ctrl+shift+2",
     "hotkey_hide": "ctrl+shift+3",
-    "hotkey_settings": "ctrl+shift+s"
+    "hotkey_settings": "ctrl+shift+s",
+    "hotkey_scroll_up": "ctrl+shift+up",
+    "hotkey_scroll_down": "ctrl+shift+down",
+    "hotkey_move_up": "alt+shift+up",
+    "hotkey_move_down": "alt+shift+down",
+    "hotkey_move_left": "alt+shift+left",
+    "hotkey_move_right": "alt+shift+right",
+    "hotkey_capture_add": "ctrl+shift+4",
+    "hotkey_process_buffer": "ctrl+shift+5"
 }
 
 def load_config():

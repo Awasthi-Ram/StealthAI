@@ -53,6 +53,18 @@ class OverlayUI(QMainWindow):
         self.text_display.setPlainText(text)
         self.show()
 
+    def scroll_up(self):
+        scrollbar = self.text_display.verticalScrollBar()
+        scrollbar.setValue(scrollbar.value() - 50)
+
+    def scroll_down(self):
+        scrollbar = self.text_display.verticalScrollBar()
+        scrollbar.setValue(scrollbar.value() + 50)
+
+    def move_window(self, dx, dy):
+        pos = self.pos()
+        self.move(pos.x() + dx, pos.y() + dy)
+
 class SettingsDialog(QDialog):
     settings_saved = pyqtSignal()
     
@@ -63,7 +75,7 @@ class SettingsDialog(QDialog):
         
     def initUI(self):
         self.setWindowTitle("Stealth AI Settings")
-        self.setFixedSize(400, 450)
+        self.setFixedSize(450, 720)
         
         layout = QFormLayout(self)
         
@@ -71,8 +83,8 @@ class SettingsDialog(QDialog):
         self.claude_key = QLineEdit(self.config.get("claude_api_key", ""))
         
         self.model_combo = QComboBox()
-        self.model_combo.addItems(["Gemini 1.5 Flash", "Gemini 1.5 Pro", "Claude 3.5 Sonnet"])
-        self.model_combo.setCurrentText(self.config.get("selected_model", "Gemini 1.5 Flash"))
+        self.model_combo.addItems(["Gemini 3.5 Flash", "Gemini 3.5 Pro", "Claude Sonnet 4.6"])
+        self.model_combo.setCurrentText(self.config.get("selected_model", "Gemini 3.5 Flash"))
         
         self.prompt_edit = QTextEdit()
         self.prompt_edit.setPlainText(self.config.get("system_prompt", ""))
@@ -82,6 +94,14 @@ class SettingsDialog(QDialog):
         self.hk_audio = QLineEdit(self.config.get("hotkey_audio", "ctrl+shift+2"))
         self.hk_hide = QLineEdit(self.config.get("hotkey_hide", "ctrl+shift+3"))
         self.hk_settings = QLineEdit(self.config.get("hotkey_settings", "ctrl+shift+s"))
+        self.hk_scroll_up = QLineEdit(self.config.get("hotkey_scroll_up", "ctrl+shift+up"))
+        self.hk_scroll_down = QLineEdit(self.config.get("hotkey_scroll_down", "ctrl+shift+down"))
+        self.hk_move_up = QLineEdit(self.config.get("hotkey_move_up", "alt+shift+up"))
+        self.hk_move_down = QLineEdit(self.config.get("hotkey_move_down", "alt+shift+down"))
+        self.hk_move_left = QLineEdit(self.config.get("hotkey_move_left", "alt+shift+left"))
+        self.hk_move_right = QLineEdit(self.config.get("hotkey_move_right", "alt+shift+right"))
+        self.hk_capture_add = QLineEdit(self.config.get("hotkey_capture_add", "ctrl+shift+4"))
+        self.hk_process_buffer = QLineEdit(self.config.get("hotkey_process_buffer", "ctrl+shift+5"))
         
         layout.addRow("Gemini API Key:", self.gemini_key)
         layout.addRow("Claude API Key:", self.claude_key)
@@ -91,6 +111,14 @@ class SettingsDialog(QDialog):
         layout.addRow("Hotkey (Audio+Image):", self.hk_audio)
         layout.addRow("Hotkey (Hide Overlay):", self.hk_hide)
         layout.addRow("Hotkey (Settings):", self.hk_settings)
+        layout.addRow("Hotkey (Scroll Up):", self.hk_scroll_up)
+        layout.addRow("Hotkey (Scroll Down):", self.hk_scroll_down)
+        layout.addRow("Hotkey (Move Up):", self.hk_move_up)
+        layout.addRow("Hotkey (Move Down):", self.hk_move_down)
+        layout.addRow("Hotkey (Move Left):", self.hk_move_left)
+        layout.addRow("Hotkey (Move Right):", self.hk_move_right)
+        layout.addRow("Hotkey (Capture+Add):", self.hk_capture_add)
+        layout.addRow("Hotkey (Process Multiple):", self.hk_process_buffer)
         
         btn_layout = QHBoxLayout()
         save_btn = QPushButton("Save")
@@ -112,6 +140,14 @@ class SettingsDialog(QDialog):
         self.config["hotkey_audio"] = self.hk_audio.text()
         self.config["hotkey_hide"] = self.hk_hide.text()
         self.config["hotkey_settings"] = self.hk_settings.text()
+        self.config["hotkey_scroll_up"] = self.hk_scroll_up.text()
+        self.config["hotkey_scroll_down"] = self.hk_scroll_down.text()
+        self.config["hotkey_move_up"] = self.hk_move_up.text()
+        self.config["hotkey_move_down"] = self.hk_move_down.text()
+        self.config["hotkey_move_left"] = self.hk_move_left.text()
+        self.config["hotkey_move_right"] = self.hk_move_right.text()
+        self.config["hotkey_capture_add"] = self.hk_capture_add.text()
+        self.config["hotkey_process_buffer"] = self.hk_process_buffer.text()
         
         save_config(self.config)
         self.settings_saved.emit()

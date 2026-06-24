@@ -20,7 +20,8 @@ DEFAULT_CONFIG = {
     "hotkey_move_left": "alt+shift+left",
     "hotkey_move_right": "alt+shift+right",
     "hotkey_capture_add": "ctrl+shift+4",
-    "hotkey_process_buffer": "ctrl+shift+5"
+    "hotkey_process_buffer": "ctrl+shift+5",
+    "overlay_opacity": 0.9
 }
 
 def load_config():

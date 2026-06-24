@@ -15,6 +15,7 @@ class HotkeySignals(QObject):
     trigger_hide = pyqtSignal()
     trigger_settings = pyqtSignal()
     update_overlay = pyqtSignal(str)
+    update_progress = pyqtSignal(int, str)
     trigger_scroll_up = pyqtSignal()
     trigger_scroll_down = pyqtSignal()
     trigger_move_up = pyqtSignal()
@@ -42,6 +43,7 @@ class StealthAIApp:
         self.signals.trigger_hide.connect(self.on_hide_trigger)
         self.signals.trigger_settings.connect(self.open_settings)
         self.signals.update_overlay.connect(self.overlay.show_message)
+        self.signals.update_progress.connect(self.overlay.update_progress)
         self.signals.trigger_scroll_up.connect(self.overlay.scroll_up)
         self.signals.trigger_scroll_down.connect(self.overlay.scroll_down)
         self.signals.trigger_move_up.connect(lambda: self.overlay.move_window(0, -50))
@@ -51,8 +53,10 @@ class StealthAIApp:
         self.signals.trigger_capture_add.connect(self.on_capture_add)
         self.signals.trigger_process_buffer.connect(self.on_process_buffer)
         
-        # Connect overlay quit button
+        # Connect overlay buttons and opacity
         self.overlay.quit_btn.clicked.connect(self.quit_app)
+        self.overlay.settings_btn.clicked.connect(self.open_settings)
+        self.overlay.setWindowOpacity(self.config.get("overlay_opacity", 0.9))
         
         self.setup_tray()
         self.register_hotkeys()
@@ -91,6 +95,7 @@ class StealthAIApp:
     def update_hotkeys(self):
         self.config = load_config()
         self.register_hotkeys()
+        self.overlay.setWindowOpacity(self.config.get("overlay_opacity", 0.9))
         
     def open_settings(self):
         if not self.settings_dialog:
@@ -105,14 +110,17 @@ class StealthAIApp:
 
     def on_image_trigger(self):
         self.overlay.show_message("Capturing screen and analyzing...")
-        # Run in thread to not block UI
         threading.Thread(target=self._process_image_task).start()
+        
+    def _progress_cb(self, val, msg):
+        self.signals.update_progress.emit(val, msg)
         
     def _process_image_task(self):
         img = capture_screen()
         if img:
-            res = process_with_ai(images=[img])
+            res = process_with_ai(images=[img], progress_cb=self._progress_cb)
             self.signals.update_overlay.emit(res)
+            self.signals.update_progress.emit(100, "")
         else:
             self.signals.update_overlay.emit("Failed to capture screen.")
 
@@ -133,8 +141,9 @@ class StealthAIApp:
         threading.Thread(target=self._process_buffer_task).start()
         
     def _process_buffer_task(self):
-        res = process_with_ai(images=self.image_buffer)
+        res = process_with_ai(images=self.image_buffer, progress_cb=self._progress_cb)
         self.signals.update_overlay.emit(res)
+        self.signals.update_progress.emit(100, "")
         self.image_buffer.clear()
 
     def on_audio_trigger(self):
@@ -146,8 +155,9 @@ class StealthAIApp:
         audio_path = record_audio(duration=5)
         if img and audio_path:
             self.signals.update_overlay.emit("Processing with AI...")
-            res = process_with_ai(images=[img], audio_path=audio_path)
+            res = process_with_ai(images=[img], audio_path=audio_path, progress_cb=self._progress_cb)
             self.signals.update_overlay.emit(res)
+            self.signals.update_progress.emit(100, "")
             cleanup_audio(audio_path)
         else:
             self.signals.update_overlay.emit("Failed to capture screen or audio.")

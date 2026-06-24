@@ -1,7 +1,7 @@
 import ctypes
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QTextEdit, QVBoxLayout, 
                              QWidget, QDialog, QLabel, QLineEdit, QComboBox, 
-                             QPushButton, QFormLayout, QHBoxLayout)
+                             QPushButton, QFormLayout, QHBoxLayout, QProgressBar, QSlider)
 from PyQt6.QtCore import Qt, pyqtSignal, QObject
 from PyQt6.QtGui import QFont, QColor, QPalette
 from config import load_config, save_config
@@ -65,6 +65,48 @@ class OverlayUI(QMainWindow):
         
         layout.addWidget(self.text_display)
         
+        self.progress_label = QLabel("")
+        self.progress_label.setStyleSheet("color: #F8F8F2; font-family: 'Segoe UI', sans-serif; font-size: 14px; font-weight: bold;")
+        self.progress_label.hide()
+        layout.addWidget(self.progress_label)
+        
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setStyleSheet("""
+            QProgressBar {
+                border: 1px solid #44475A;
+                border-radius: 5px;
+                background-color: #282A36;
+                height: 8px;
+                max-height: 8px;
+            }
+            QProgressBar::chunk {
+                background-color: #50FA7B;
+                border-radius: 4px;
+            }
+        """)
+        self.progress_bar.hide()
+        layout.addWidget(self.progress_bar)
+        
+        btn_layout = QHBoxLayout()
+        self.settings_btn = QPushButton("⚙ Settings", self)
+        self.settings_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(68, 71, 90, 200);
+                color: white;
+                border-radius: 5px;
+                padding: 5px 15px;
+                font-family: 'Segoe UI', sans-serif;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: rgba(68, 71, 90, 255);
+            }
+        """)
+        
         self.quit_btn = QPushButton("Quit", self)
         self.quit_btn.setStyleSheet("""
             QPushButton {
@@ -80,12 +122,27 @@ class OverlayUI(QMainWindow):
                 background-color: rgba(255, 85, 85, 255);
             }
         """)
-        layout.addWidget(self.quit_btn, alignment=Qt.AlignmentFlag.AlignRight)
+        
+        btn_layout.addStretch()
+        btn_layout.addWidget(self.settings_btn)
+        btn_layout.addWidget(self.quit_btn)
+        layout.addLayout(btn_layout)
         
     def show_message(self, text):
         self.text_display.setPlainText(text)
         self.show()
 
+    def update_progress(self, value, text):
+        if value < 100:
+            if not self.progress_bar.isVisible():
+                self.progress_bar.show()
+                self.progress_label.show()
+            self.progress_bar.setValue(value)
+            self.progress_label.setText(text)
+        else:
+            self.progress_bar.hide()
+            self.progress_label.hide()
+            
     def scroll_up(self):
         scrollbar = self.text_display.verticalScrollBar()
         scrollbar.setValue(scrollbar.value() - 50)
@@ -162,6 +219,19 @@ class SettingsDialog(QDialog):
         self.login_btn.clicked.connect(self.login_gemini)
         layout.addRow("Web Login:", self.login_btn)
         
+        # Opacity slider
+        self.opacity_slider = QSlider(Qt.Orientation.Horizontal)
+        self.opacity_slider.setRange(10, 100)
+        opacity_val = int(self.config.get("overlay_opacity", 0.9) * 100)
+        self.opacity_slider.setValue(opacity_val)
+        self.opacity_label = QLabel(f"{opacity_val}%")
+        self.opacity_slider.valueChanged.connect(lambda v: self.opacity_label.setText(f"{v}%"))
+        
+        opacity_layout = QHBoxLayout()
+        opacity_layout.addWidget(self.opacity_slider)
+        opacity_layout.addWidget(self.opacity_label)
+        layout.addRow("Overlay Opacity:", opacity_layout)
+        
         # Connect toggle
         self.backend_combo.currentTextChanged.connect(self.toggle_backend_ui)
         self.toggle_backend_ui(self.backend_combo.currentText())
@@ -214,6 +284,7 @@ class SettingsDialog(QDialog):
         self.config["hotkey_move_right"] = self.hk_move_right.text()
         self.config["hotkey_capture_add"] = self.hk_capture_add.text()
         self.config["hotkey_process_buffer"] = self.hk_process_buffer.text()
+        self.config["overlay_opacity"] = self.opacity_slider.value() / 100.0
         
         save_config(self.config)
         self.settings_saved.emit()

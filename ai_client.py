@@ -240,7 +240,7 @@ def process_with_gemini_web(sys_prompt, images, audio_path, data_dir="./gemini_w
                 
             # Try to find the input box
             try:
-                page.wait_for_selector('rich-textarea p', timeout=15000)
+                page.wait_for_selector('rich-textarea p', timeout=300000)
             except:
                 browser.close()
                 return "Error: Could not find input box on Gemini Web."
@@ -378,12 +378,12 @@ def process_with_gemini_web(sys_prompt, images, audio_path, data_dir="./gemini_w
             # Wait for generation to start and settle
             page.wait_for_timeout(1000)
             try:
-                page.wait_for_selector('message-content', timeout=30000)
+                page.wait_for_selector('message-content', timeout=300000)
             except:
-                return "Error: Timeout waiting for response from Gemini Web."
+                return "Error: Timeout waiting for response from Gemini Web (5 min limit)."
                 
             last_text = ""
-            for _ in range(40):
+            for _ in range(600):
                 page.wait_for_timeout(500)
                 msgs = page.query_selector_all('message-content')
                 if not msgs: continue

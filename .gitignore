@@ -20,4 +20,6 @@ dist/
 # Settings
 settings.json
 gemini_web_data/
+test_gemini_data/
+test_data/
 *.log

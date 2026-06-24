@@ -28,6 +28,10 @@ class OverlayUI(QMainWindow):
             print(f"Failed to set window display affinity: {e}")
 
         self.setGeometry(100, 100, 600, 400)
+        
+        # Force arrow cursor on the entire window so it never changes
+        from PyQt6.QtGui import QCursor
+        self.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -35,6 +39,9 @@ class OverlayUI(QMainWindow):
 
         self.text_display = QTextEdit(self)
         self.text_display.setReadOnly(True)
+        # Force arrow cursor on text area so it doesn't show I-beam
+        self.text_display.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
+        self.text_display.viewport().setCursor(QCursor(Qt.CursorShape.ArrowCursor))
         self.text_display.setStyleSheet("""
             QTextEdit {
                 background-color: rgba(25, 25, 30, 230);
